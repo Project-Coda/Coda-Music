@@ -24,7 +24,9 @@ module.exports = {
 			// get voice channel
 			const voiceChannel = interaction.member.voice.channel;
 			// get url
-			const url = interaction.options.get('url').value;
+			if (interaction.options.get('url')) {
+				url = interaction.options.get('url').value;
+			}
 			// get volume
 			if (interaction.options.get('volume')) {
 				volume = interaction.options.get('volume').value;
@@ -44,6 +46,12 @@ module.exports = {
 		}
 		catch (error) {
 			console.log(error);
+			interaction.reply({ embeds:[embedcreator.setembed(
+				{
+					title: 'Error',
+					description: 'An error occurred while trying to play the song.',
+				})],
+			});
 			return embedcreator.sendError(error);
 		}
 	},

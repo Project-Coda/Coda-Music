@@ -21,11 +21,8 @@ console.log(`Author: ${pkg.author}`);
 console.log(`GitHub: ${pkg.repository.url}`);
 global.client.once('ready', async () => {
 	console.log('Ready!');
-	// get the number of users in the server
-	const guild = global.client.guilds.cache.get(env.discord.guild);
-	const members = await guild.members.fetch();
 	// set the client's presence
-	global.client.user.setActivity(`${members.size} members`, { type: ActivityType.Playing });
+	global.client.user.setActivity('your music', { type: ActivityType.Playing });
 });
 
 const commands = [];
@@ -68,3 +65,10 @@ global.client.on('interactionCreate', async interaction => {
 	const command = require(commandFile);
 	await command.execute(interaction);
 });
+
+// handle audio resource error events
+global.client.on('audioResourceError', async (error) => {
+	console.error(error);
+	embedcreator.sendError(error);
+},
+);

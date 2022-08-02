@@ -1,7 +1,10 @@
-const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, joinVoiceChannel } = require('@discordjs/voice');
+const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
+const { ActivityType } = require('discord.js');
 const ytdl = require('ytdl-core');
 const embedcreator = require('../embed.js');
-
+channel = null;
+track = null;
+player = null;
 // Create Track Class
 class Track {
 	constructor(name, url, artist, image) {
@@ -31,6 +34,9 @@ async function joinVC(channel) {
 	});
 	return channel;
 }
+async function leaveVC() {
+	channel.destroy();
+}
 async function YouTube(player, url, volume, channel) {
 	try {
 		info = await ytdl.getBasicInfo(url);
@@ -46,7 +52,15 @@ async function YouTube(player, url, volume, channel) {
 			console.log(`Setting volume to ${volume}`);
 			resource.volume.setVolume(volume);
 		}
-		const track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, info.videoDetails.thumbnails[4].url);
+		array = info.videoDetails.thumbnails;
+		image = array[array.length - 1].url;
+		track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, image);
+		player.on(AudioPlayerStatus.Idle, (track) => {
+			console.log('Finished playing.');
+			global.client.user.setActivity('your music', { type: ActivityType.Playing });
+			return embedcreator.log('Finished playing ' + track.name);
+		},
+		);
 		await NowPlaying(track);
 		return track;
 	}
@@ -56,20 +70,32 @@ async function YouTube(player, url, volume, channel) {
 	}
 }
 async function createPlayer() {
-	const player = createAudioPlayer(
+	player = createAudioPlayer(
 		{
 			noSubscriberBehavior: NoSubscriberBehavior.Stop,
 			noSubscriberBehaviorTimeout: 10000,
 		},
 	);
+	player.on('error', error => {
+		console.log(error);
+		return embedcreator.sendError(error);
+	},
+	);
 	return player;
 }
 async function NowPlaying(track) {
+	// set now playing status
+	await global.client.user.setActivity(`${track.name} by ${track.artist}`, {
+		type: ActivityType.Playing,
+	});
 	console.log(`Now Playing: ${track.name} by ${track.artist}`);
+	// log now playing
+	embedcreator.log(`Now Playing: ${track.name} by ${track.artist}`);
 }
 module.exports = {
 	YouTube,
 	createPlayer,
 	joinVC,
 	createEmbed,
+	leaveVC,
 };
