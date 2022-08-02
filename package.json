@@ -1,0 +1,31 @@
+{
+  "name": "coda-music",
+  "version": "1.0.0",
+  "description": "A music bot for Coda",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Project-Coda/Coda-Music.git"
+  },
+  "author": "Matheson Steplock (ikifar2012)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Project-Coda/Coda-Music/issues"
+  },
+  "homepage": "https://github.com/Project-Coda/Coda-Music#readme",
+  "dependencies": {
+    "@discordjs/opus": "^0.8.0",
+    "@discordjs/rest": "^1.0.1",
+    "@discordjs/voice": "^0.11.0",
+    "discord-api-types": "^0.37.0",
+    "discord.js": "^14.1.2",
+    "ffmpeg-static": "^5.0.2",
+    "figlet": "^1.5.2",
+    "lodash": "^4.17.21",
+    "sodium": "^3.0.2",
+    "ytdl-core": "^4.11.0"
+  }
+}
