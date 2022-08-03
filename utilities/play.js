@@ -87,15 +87,16 @@ async function YouTubeResource(url, volume) {
 			filter: 'audioonly',
 		});
 		if (volume < 1) {
-			resource = createAudioResource(yt, {
+			const resource = createAudioResource(yt, {
 				inlineVolume: true,
 			});
-			resource.volume.setvolume(volume);
+			resource.volume.setVolume(volume);
+			return resource;
 		}
 		else {
-			resource = createAudioResource(yt);
+			const resource = createAudioResource(yt);
+			return resource;
 		}
-		return resource;
 	}
 	catch (error) {
 		console.log(error);
@@ -108,12 +109,6 @@ async function createPlayer() {
 			noSubscriberBehavior: NoSubscriberBehavior.Stop,
 			noSubscriberBehaviorTimeout: 10000,
 		},
-	);
-	player.on(AudioPlayerStatus.Idle, (track) => {
-		console.log('Finished playing.');
-		global.client.user.setActivity('your music', { type: ActivityType.Playing });
-		return embedcreator.log('Finished playing ' + track.name);
-	},
 	);
 	player.on('error', error => {
 		console.log(error);
@@ -130,6 +125,12 @@ async function NowPlaying(track) {
 	console.log(`Now Playing: ${track.name} by ${track.artist}`);
 	// log now playing
 	embedcreator.log(`Now Playing: ${track.name} by ${track.artist}`);
+	player.on(AudioPlayerStatus.Idle, () => {
+		console.log('Finished playing ' + track.name);
+		global.client.user.setActivity('your music', { type: ActivityType.Playing });
+		return embedcreator.log('Finished playing ' + track.name);
+	},
+	);
 }
 async function 	playTrack(track, volume) {
 	if (track.url.includes('youtube')) {
