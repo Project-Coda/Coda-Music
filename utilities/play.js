@@ -16,7 +16,7 @@ class Track {
 		this.name = name;
 		this.url = url;
 		this.artist = artist;
-		this.artistImage = image;
+		this.artistImage = artistImage;
 		this.image = image;
 	}
 }
