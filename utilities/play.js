@@ -41,7 +41,7 @@ async function stop() {
 	if (player) {
 		player.stop();
 		playerstatus = 'Stopped';
-		createEmbed(track, playerstatus, volume);
+		await createEmbed(track, playerstatus, volume);
 		await trackinteraction.editReply({
 			embeds: [embed],
 			ephemeral: true,
@@ -255,8 +255,14 @@ async function NowPlaying(track) {
 	console.log(`Now Playing: ${track.name} by ${track.artist}`);
 	// log now playing
 	embedcreator.log(`Now Playing: ${track.name} by ${track.artist}`);
-	player.on(AudioPlayerStatus.Idle, () => {
+	player.on(AudioPlayerStatus.Idle, async () => {
 		console.log('Finished playing ' + track.name);
+		playerstatus = 'Finished playing';
+		embed = await createEmbed(track, playerstatus, volume);
+		await trackinteraction.editReply({
+			embeds: [embed],
+			ephemeral: true,
+		});
 		global.client.user.setActivity('your music', { type: ActivityType.Playing });
 		return embedcreator.log('Finished playing ' + track.name);
 	},
