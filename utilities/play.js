@@ -94,7 +94,7 @@ async function leaveVC() {
 }
 async function addTrack(url, volume, channel, interaction) {
 	try {
-		interaction.reply({
+		await interaction.reply({
 			embeds: [embedcreator.setembed({
 				title: 'Loading...',
 				description: '',
