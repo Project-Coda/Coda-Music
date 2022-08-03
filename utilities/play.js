@@ -2,9 +2,10 @@ const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, joinVoiceC
 const { ActivityType } = require('discord.js');
 const ytdl = require('ytdl-core');
 const embedcreator = require('../embed.js');
-channel = null;
+connection = null;
 track = null;
 player = null;
+queue = [];
 // Create Track Class
 class Track {
 	constructor(name, url, artist, image) {
@@ -27,42 +28,74 @@ async function createEmbed(track) {
 	return embed;
 }
 async function joinVC(channel) {
-	channel = joinVoiceChannel({
+	connection = joinVoiceChannel({
 		channelId: channel.id,
 		guildId: channel.guild.id,
 		adapterCreator: channel.guild.voiceAdapterCreator,
 	});
-	return channel;
+	return connection;
 }
 async function leaveVC() {
-	channel.destroy();
+	connection.destroy();
 }
-async function YouTube(player, url, volume, channel) {
+async function addTrack(url, volume, channel, interaction) {
+	try {
+		interaction.reply({
+			embeds: [embedcreator.setembed({
+				title: 'Loading...',
+				description: '',
+				color: 0x19ebfe,
+			})], ephemeral: true });
+		track = await youtubeInfo(url);
+		queue.push(track);
+		await joinVC(channel);
+		await createPlayer(channel);
+		console.log(queue);
+		console.log(player._state.status);
+		if (player._state.status === 'idle') {
+			playTrack(track, volume);
+			embed = await createEmbed(track);
+			interaction.editReply({
+				embeds: [embed],
+				ephemeral: true,
+			});
+		}
+
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
+}
+async function youtubeInfo(url) {
 	try {
 		info = await ytdl.getBasicInfo(url);
-		const yt = ytdl(url, {
-			filter: 'audioonly',
-		});
-		const resource = createAudioResource(yt, {
-			inlineVolume: true,
-		});
-		await player.play(resource);
-		await channel.subscribe(player);
-		if (volume != 1) {
-			console.log(`Setting volume to ${volume}`);
-			resource.volume.setVolume(volume);
-		}
 		array = info.videoDetails.thumbnails;
 		image = array[array.length - 1].url;
 		track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, image);
-		player.on(AudioPlayerStatus.Idle, (track) => {
-			console.log('Finished playing.');
-			global.client.user.setActivity('your music', { type: ActivityType.Playing });
-			return embedcreator.log('Finished playing ' + track.name);
-		},
-		);
-		await NowPlaying(track);
 		return track;
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
+}
+
+async function YouTubeResource(url, volume) {
+	try {
+		const yt = ytdl(url, {
+			filter: 'audioonly',
+		});
+		if (volume < 1) {
+			resource = createAudioResource(yt, {
+				inlineVolume: true,
+			});
+			resource.volume.setvolume(volume);
+		}
+		else {
+			resource = createAudioResource(yt);
+		}
+		return resource;
 	}
 	catch (error) {
 		console.log(error);
@@ -75,6 +108,12 @@ async function createPlayer() {
 			noSubscriberBehavior: NoSubscriberBehavior.Stop,
 			noSubscriberBehaviorTimeout: 10000,
 		},
+	);
+	player.on(AudioPlayerStatus.Idle, (track) => {
+		console.log('Finished playing.');
+		global.client.user.setActivity('your music', { type: ActivityType.Playing });
+		return embedcreator.log('Finished playing ' + track.name);
+	},
 	);
 	player.on('error', error => {
 		console.log(error);
@@ -92,8 +131,21 @@ async function NowPlaying(track) {
 	// log now playing
 	embedcreator.log(`Now Playing: ${track.name} by ${track.artist}`);
 }
+async function 	playTrack(track, volume) {
+	if (track.url.includes('youtube')) {
+		resource = await YouTubeResource(track.url, volume);
+	}
+	else if (track.url.includes('soundcloud')) {
+		resource = await SoundCloudResource(track.url);
+	}
+	connection.subscribe(player);
+	player.play(resource);
+	await NowPlaying(track);
+}
 module.exports = {
-	YouTube,
+	YouTubeResource,
+	playTrack,
+	addTrack,
 	createPlayer,
 	joinVC,
 	createEmbed,

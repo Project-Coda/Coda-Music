@@ -37,12 +37,7 @@ module.exports = {
 				volume = 1;
 			}
 			// play song
-			channel = await play.joinVC(voiceChannel);
-			player = await play.createPlayer();
-			response = await play.YouTube(player, url, volume, channel);
-			// send embed
-			embed = await play.createEmbed(response);
-			return interaction.reply({ embeds:[embed], ephemeral: true });
+			play.addTrack(url, volume, voiceChannel, interaction);
 		}
 		catch (error) {
 			console.log(error);
