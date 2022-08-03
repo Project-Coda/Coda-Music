@@ -26,6 +26,7 @@
     "figlet": "^1.5.2",
     "lodash": "^4.17.21",
     "sodium": "^3.0.2",
+    "soundcloud-downloader": "^1.0.0",
     "ytdl-core": "^4.11.0"
   }
 }
