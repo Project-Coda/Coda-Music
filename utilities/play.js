@@ -1,10 +1,12 @@
 const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
-const { ActivityType } = require('discord.js');
+const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 const ytdl = require('ytdl-core');
 const embedcreator = require('../embed.js');
+
 connection = null;
 track = null;
 player = null;
+paused = false;
 queue = [];
 // Create Track Class
 class Track {
@@ -27,6 +29,57 @@ async function createEmbed(track) {
 	});
 	return embed;
 }
+async function stop() {
+	if (player) {
+		player.stop();
+	}
+}
+async function pause() {
+	player.pause();
+	paused = true;
+}
+async function unpause() {
+	player.unpause();
+}
+// create buttons
+async function createButtons() {
+	var row = new ActionRowBuilder()
+		.addComponents(
+			new ButtonBuilder()
+				.setCustomId('pause')
+				.setLabel('⏯')
+				.setStyle(ButtonStyle.Primary),
+			new ButtonBuilder()
+				.setCustomId('stop')
+				.setLabel('⏹')
+				.setStyle(ButtonStyle.Danger),
+		);
+	return row;
+}
+async function buttonCollector(interaction) {
+	const filter = i => (i.customId === 'pause' || i.customId === 'stop') && i.user.id === interaction.user.id && i.message.interaction.id === interaction.id;
+	const collector = interaction.channel.createMessageComponentCollector({ filter, componentType: ComponentType.Button });
+	collector.on('collect', async i => {
+		if (i.customId === 'pause') {
+			if (paused) {
+				unpause();
+			}
+			else {
+				pause();
+			}
+		}
+		else if (i.customId === 'stop') {
+			console.log('stop');
+			stop();
+		}
+	},
+	);
+	collector.on('end', collected => {
+		console.log(`Collected ${collected} items`);
+		console.log(collected);
+	},
+	);
+}
 async function joinVC(channel) {
 	connection = joinVoiceChannel({
 		channelId: channel.id,
@@ -46,19 +99,32 @@ async function addTrack(url, volume, channel, interaction) {
 				description: '',
 				color: 0x19ebfe,
 			})], ephemeral: true });
-		track = await youtubeInfo(url);
-		queue.push(track);
-		await joinVC(channel);
-		await createPlayer(channel);
-		console.log(queue);
-		console.log(player._state.status);
+		if (url.includes('youtube')) {
+			track = await youtubeInfo(url);
+		}
+		else if (url.includes('soundcloud')) {
+			track = await soundcloudInfo(url);
+		}
+		else {
+			track = await localInfo(url);
+		}
+		if (track) {
+			queue.push(track);
+			await joinVC(channel);
+			await createPlayer(channel);
+			console.log(queue);
+			console.log(player._state.status);
+		}
 		if (player._state.status === 'idle') {
 			playTrack(track, volume);
 			embed = await createEmbed(track);
-			interaction.editReply({
+			row = await createButtons();
+			await interaction.editReply({
 				embeds: [embed],
+				components: [row],
 				ephemeral: true,
 			});
+			buttonCollector(interaction);
 		}
 
 	}
@@ -133,15 +199,25 @@ async function NowPlaying(track) {
 	);
 }
 async function 	playTrack(track, volume) {
-	if (track.url.includes('youtube')) {
-		resource = await YouTubeResource(track.url, volume);
+	try {
+		if (track.url.includes('youtube') || track.url.includes('instagram')) {
+			resource = await YouTubeResource(track.url, volume);
+		}
+		else if (track.url.includes('soundcloud')) {
+			resource = await SoundCloudResource(track.url);
+		}
+		else {
+			return embedcreator.sendError('Invalid URL');
+		}
+		connection.subscribe(player);
+		player.play(resource);
+		await NowPlaying(track);
 	}
-	else if (track.url.includes('soundcloud')) {
-		resource = await SoundCloudResource(track.url);
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
 	}
-	connection.subscribe(player);
-	player.play(resource);
-	await NowPlaying(track);
+
 }
 module.exports = {
 	YouTubeResource,
@@ -151,4 +227,7 @@ module.exports = {
 	joinVC,
 	createEmbed,
 	leaveVC,
+	stop,
+	pause,
+	unpause,
 };

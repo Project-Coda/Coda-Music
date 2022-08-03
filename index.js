@@ -7,7 +7,7 @@ const embedcreator = require('./embed.js');
 const figlet = require('figlet');
 const pkg = require('./package.json');
 global.client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates],
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions],
 	partials: [Partials.Message, Partials.Channel],
 });
 global.client.login(env.discord.token);
