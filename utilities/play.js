@@ -189,6 +189,7 @@ async function SoundCloudResource(url, volume) {
 			const resource = createAudioResource(sc, {
 				inlineVolume: true,
 			});
+			console.log('volume' + volume);
 			resource.volume.setVolume(volume);
 			return resource;
 		}
@@ -237,7 +238,7 @@ async function 	playTrack(track, volume) {
 			resource = await YouTubeResource(track.url, volume);
 		}
 		else if (track.url.includes('soundcloud')) {
-			resource = await SoundCloudResource(track.url);
+			resource = await SoundCloudResource(track.url, volume);
 		}
 		else {
 			return embedcreator.sendError('Invalid URL');
