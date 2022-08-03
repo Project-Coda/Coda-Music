@@ -89,14 +89,17 @@ async function buttonCollector(interaction) {
 	collector.on('collect', async i => {
 		if (i.customId === 'pause') {
 			if (paused) {
+				await i.deferUpdate();
 				unpause();
 			}
 			else {
+				await i.deferUpdate();
 				pause();
 			}
 		}
 		else if (i.customId === 'stop') {
 			console.log('stop');
+			await i.deferUpdate();
 			stop();
 		}
 	},
