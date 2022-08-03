@@ -8,21 +8,28 @@ connection = null;
 track = null;
 player = null;
 paused = false;
+trackinteraction = null;
 queue = [];
 // Create Track Class
 class Track {
-	constructor(name, url, artist, image) {
+	constructor(name, url, artist, artistImage, image) {
 		this.name = name;
 		this.url = url;
 		this.artist = artist;
+		this.artistImage = image;
 		this.image = image;
 	}
 }
-async function createEmbed(track) {
+async function createEmbed(track, playerstatus, volume) {
+	readablevolume = volume * 100;
 	embed = embedcreator.setembed ({
-		title: `Now Playing: ${track.name}`,
+		title: `${playerstatus}: ${track.name}`,
 		url: track.url,
-		description: `**Artist:** ${track.artist}\n**URL:** ${track.url}`,
+		author: {
+			name: track.artist,
+			icon_url: track.artistImage,
+		},
+		description: `**Artist:** ${track.artist}\n**URL:** ${track.url}\n**Volume:** ${readablevolume}%`,
 		color: 0x19ebfe,
 		image: {
 			url: track.image,
@@ -33,14 +40,33 @@ async function createEmbed(track) {
 async function stop() {
 	if (player) {
 		player.stop();
+		playerstatus = 'Stopped';
+		createEmbed(track, playerstatus, volume);
+		await trackinteraction.editReply({
+			embeds: [embed],
+			ephemeral: true,
+		});
 	}
 }
 async function pause() {
 	player.pause();
+	playerstatus = 'Paused';
+	createEmbed(track, playerstatus, volume);
+	await trackinteraction.editReply({
+		embeds: [embed],
+		ephemeral: true,
+	});
 	paused = true;
 }
 async function unpause() {
 	player.unpause();
+	playerstatus = 'Now Playing';
+	createEmbed(track, playerstatus, volume);
+	await trackinteraction.editReply({
+		embeds: [embed],
+		ephemeral: true,
+	}),
+	paused = false;
 }
 // create buttons
 async function createButtons() {
@@ -77,7 +103,6 @@ async function buttonCollector(interaction) {
 	);
 	collector.on('end', collected => {
 		console.log(`Collected ${collected} items`);
-		console.log(collected);
 	},
 	);
 }
@@ -94,6 +119,7 @@ async function leaveVC() {
 }
 async function addTrack(url, volume, channel, interaction) {
 	try {
+		trackinteraction = interaction;
 		await interaction.reply({
 			embeds: [embedcreator.setembed({
 				title: 'Loading...',
@@ -118,7 +144,8 @@ async function addTrack(url, volume, channel, interaction) {
 		}
 		if (player._state.status === 'idle') {
 			playTrack(track, volume);
-			embed = await createEmbed(track);
+			playerstatus = 'Now Playing';
+			embed = await createEmbed(track, playerstatus, volume);
 			row = await createButtons();
 			await interaction.editReply({
 				embeds: [embed],
@@ -138,7 +165,7 @@ async function soundcloudInfo(url) {
 	try {
 		const info = await scdl.getInfo(url, env.soundcloud.client_id);
 		console.log(info);
-		const track = new Track(info.title, url, info.user.username, info.artwork_url);
+		const track = new Track(info.title, url, info.user.username, info.user.avatar_url, info.artwork_url);
 		return track;
 	}
 	catch (error) {
@@ -151,7 +178,10 @@ async function youtubeInfo(url) {
 		info = await ytdl.getBasicInfo(url);
 		array = info.videoDetails.thumbnails;
 		image = array[array.length - 1].url;
-		track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, image);
+		console.log(info);
+		authorimage = info.videoDetails.author.thumbnails;
+		authorimage = authorimage[authorimage.length - 1].url;
+		track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, authorimage, image);
 		return track;
 	}
 	catch (error) {
