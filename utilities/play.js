@@ -3,7 +3,7 @@ const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentTyp
 const ytdl = require('ytdl-core');
 const scdl = require('soundcloud-downloader').default;
 const embedcreator = require('../embed.js');
-
+const env = require('../env.js');
 connection = null;
 track = null;
 player = null;
@@ -134,6 +134,18 @@ async function addTrack(url, volume, channel, interaction) {
 		return embedcreator.sendError(error);
 	}
 }
+async function soundcloudInfo(url) {
+	try {
+		const info = await scdl.getInfo(url, env.soundcloud.client_id);
+		console.log(info);
+		const track = new Track(info.title, url, info.user.username, info.artwork_url);
+		return track;
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
+}
 async function youtubeInfo(url) {
 	try {
 		info = await ytdl.getBasicInfo(url);
@@ -162,6 +174,26 @@ async function YouTubeResource(url, volume) {
 		}
 		else {
 			const resource = createAudioResource(yt);
+			return resource;
+		}
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
+}
+async function SoundCloudResource(url, volume) {
+	try {
+		const sc = await scdl.download(url, env.soundcloud.client_id);
+		if (volume < 1) {
+			const resource = createAudioResource(sc, {
+				inlineVolume: true,
+			});
+			resource.volume.setVolume(volume);
+			return resource;
+		}
+		else {
+			const resource = createAudioResource(sc);
 			return resource;
 		}
 	}
