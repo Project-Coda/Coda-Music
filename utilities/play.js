@@ -1,3 +1,7 @@
+const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
+const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+const embedcreator = require('../embed.js');
+const env = require('../env.js');
 connection = null;
 // Create Track Class
 class Track {

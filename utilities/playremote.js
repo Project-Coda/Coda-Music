@@ -4,17 +4,12 @@ const ytdl = require('ytdl-core');
 const scdl = require('soundcloud-downloader').default;
 const embedcreator = require('../embed.js');
 const env = require('../env.js');
-connection = null;
+const { joinVC, leaveVC, buttonCollector, createButtons, createEmbed, Track, stop, pause, unpause } = require('./play.js');
 track = null;
 player = null;
 paused = false;
 trackinteraction = null;
 queue = [];
-
-
-// create buttons
-
-
 
 async function addTrack(url, volume, channel, interaction) {
 	try {
