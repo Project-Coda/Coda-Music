@@ -7,7 +7,7 @@ const embedcreator = require('./embed.js');
 const figlet = require('figlet');
 const pkg = require('./package.json');
 global.client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions],
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent],
 	partials: [Partials.Message, Partials.Channel],
 });
 global.client.login(env.discord.token);
@@ -65,7 +65,19 @@ global.client.on('interactionCreate', async interaction => {
 	const command = require(commandFile);
 	await command.execute(interaction);
 });
-
+global.client.on('messageCreate', async message => {
+	if (message.author.bot) return;
+	if (!message.content.startsWith(env.discord.prefix)) return;
+	console.log('Command received!');
+	const args = message.content.slice(env.discord.prefix.length).split(' ');
+	const commandName = args[1];
+	console.log(commandName);
+	const commandFile = `./message_commands/${commandName}.js`;
+	if (!fs.existsSync(commandFile)) return;
+	const command = require(commandFile);
+	await command.execute(message, args);
+},
+);
 // handle audio resource error events
 global.client.on('audioResourceError', async (error) => {
 	console.error(error);

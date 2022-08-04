@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const play = require('../utilities/play.js');
+const play = require('../utilities/playremote.js');
 const embedcreator = require('../embed.js');
 
 module.exports = {
