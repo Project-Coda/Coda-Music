@@ -1,6 +1,7 @@
 const { createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
 const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 const { soundcloudInfo, youtubeInfo, SoundCloudResource, YouTubeResource } = require('./playremote.js');
+const { localInfo, localResource } = require('./localplay.js');
 const embedcreator = require('../embed.js');
 connection = null;
 // Create Track Class
@@ -38,7 +39,7 @@ async function createButtons() {
 }
 // Create Button Collector
 async function buttonCollector(interaction, player) {
-	const filter = i => (i.customId === 'pause' || i.customId === 'stop') && i.user.id === interaction.user.id && i.message.interaction.id === interaction.id;
+	const filter = i => (i.customId === 'pause' || i.customId === 'stop') && i.user.id === interaction.author.id;
 	const collector = interaction.channel.createMessageComponentCollector({ filter, componentType: ComponentType.Button });
 	collector.on('collect', async i => {
 		if (i.customId === 'pause') {
@@ -68,30 +69,51 @@ async function stop() {
 		player.stop();
 		playerstatus = 'Stopped';
 		await createEmbed(track, playerstatus, volume);
-		await trackinteraction.editReply({
-			embeds: [embed],
-			ephemeral: true,
-		});
+		if (trackinteraction.type === 2) {
+			await trackinteraction.editReply({
+				embeds: [embed],
+				ephemeral: true,
+			});
+		}
+		else {
+			await trackinteraction.edit({
+				embeds: [embed],
+			});
+		}
 	}
 }
 async function pause() {
 	player.pause();
 	playerstatus = 'Paused';
 	createEmbed(track, playerstatus, volume);
-	await trackinteraction.editReply({
-		embeds: [embed],
-		ephemeral: true,
-	});
+	if (trackinteraction.type === 2) {
+		await trackinteraction.editReply({
+			embeds: [embed],
+			ephemeral: true,
+		});
+	}
+	else {
+		await trackinteraction.edit({
+			embeds: [embed],
+		});
+	}
 	paused = true;
 }
 async function unpause() {
 	player.unpause();
 	playerstatus = 'Now Playing';
 	createEmbed(track, playerstatus, volume);
-	await trackinteraction.editReply({
-		embeds: [embed],
-		ephemeral: true,
-	}),
+	if (trackinteraction.type === 2) {
+		await trackinteraction.editReply({
+			embeds: [embed],
+			ephemeral: true,
+		});
+	}
+	else {
+		await trackinteraction.edit({
+			embeds: [embed],
+		});
+	}
 	paused = false;
 }
 
@@ -109,13 +131,24 @@ async function leaveVC() {
 }
 async function addTrack(url, volume, channel, interaction) {
 	try {
-		trackinteraction = interaction;
-		await interaction.reply({
-			embeds: [embedcreator.setembed({
-				title: 'Loading...',
-				description: '',
-				color: 0x19ebfe,
-			})], ephemeral: true });
+		if (interaction.type === 19) {
+			trackinteraction = await interaction.reply({
+				embeds: [embedcreator.setembed({
+					title: 'Loading...',
+					description: '',
+					color: 0x19ebfe,
+				})], ephemeral: true });
+		}
+		else if (interaction.type === 2) {
+			trackinteraction = interaction;
+			interaction.reply({
+				embeds: [embedcreator.setembed({
+					title: 'Loading...',
+					description: '',
+					color: 0x19ebfe,
+				})], ephemeral: true });
+		}
+		console.log(trackinteraction.type);
 		if (url.includes('youtube')) {
 			track = await youtubeInfo(url);
 		}
@@ -123,7 +156,7 @@ async function addTrack(url, volume, channel, interaction) {
 			track = await soundcloudInfo(url);
 		}
 		else {
-			track = await localInfo(url);
+			track = await localInfo(url, interaction);
 		}
 		if (track) {
 			queue.push(track);
@@ -137,11 +170,19 @@ async function addTrack(url, volume, channel, interaction) {
 			playerstatus = 'Now Playing';
 			embed = await createEmbed(track, playerstatus, volume);
 			row = await createButtons();
-			await interaction.editReply({
-				embeds: [embed],
-				components: [row],
-				ephemeral: true,
-			});
+			if (trackinteraction.type === 2) {
+				await trackinteraction.editReply({
+					embeds: [embed],
+					components: [row],
+					ephemeral: true,
+				});
+			}
+			else {
+				await trackinteraction.edit({
+					embeds: [embed],
+					components: [row],
+				});
+			}
 			buttonCollector(interaction);
 		}
 	}
@@ -176,10 +217,17 @@ async function NowPlaying(track) {
 		console.log('Finished playing ' + track.name);
 		playerstatus = 'Finished playing';
 		embed = await createEmbed(track, playerstatus, volume);
-		await trackinteraction.editReply({
-			embeds: [embed],
-			ephemeral: true,
-		});
+		if (trackinteraction.type === 2) {
+			await trackinteraction.editReply({
+				embeds: [embed],
+				ephemeral: true,
+			});
+		}
+		else {
+			await trackinteraction.edit({
+				embeds: [embed],
+			});
+		}
 		global.client.user.setActivity('your music', { type: ActivityType.Playing });
 		return embedcreator.log('Finished playing ' + track.name);
 	},
@@ -194,7 +242,7 @@ async function 	playTrack(track, volume) {
 			resource = await SoundCloudResource(track.url, volume);
 		}
 		else {
-			return embedcreator.sendError('Invalid URL');
+			resource = await localResource(track.url, volume);
 		}
 		connection.subscribe(player);
 		player.play(resource);

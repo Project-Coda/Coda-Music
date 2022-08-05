@@ -1,5 +1,6 @@
 const embedcreator = require('../embed.js');
 const { Track } = require('./track.js');
+const { createAudioResource } = require('@discordjs/voice');
 async function localInfo(url, message) {
 	try {
 		source_messageid = message.reference.messageId;
@@ -19,10 +20,19 @@ async function localInfo(url, message) {
 		return embedcreator.sendError(error);
 	}
 }
-async function localResource(track) {
+async function localResource(url, volume) {
 	try {
-		const resource = await createAudioResource(track.url);
-		return resource;
+		if (volume < 1) {
+			const resource = createAudioResource(url, {
+				inlineVolume: true,
+			});
+			resource.volume.setVolume(volume);
+			return resource;
+		}
+		else {
+			const resource = createAudioResource(url);
+			return resource;
+		}
 	}
 	catch (error) {
 		console.log(error);

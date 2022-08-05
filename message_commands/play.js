@@ -1,4 +1,4 @@
-const play = require('../utilities/playremote.js');
+const play = require('../utilities/play.js');
 const embedcreator = require('../embed.js');
 module.exports = {
 	async execute(message, args) {
