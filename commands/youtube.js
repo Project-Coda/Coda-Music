@@ -17,7 +17,14 @@ module.exports = {
 	async execute(interaction) {
 		// check if user is in a voice channel
 		if (!interaction.member.voice.channel) {
-			interaction.reply('You must be in a voice channel to use this command.');
+			interaction.reply({
+				embeds: [embedcreator.setembed({
+					title: 'Error',
+					description: 'You must be in a voice channel to use this command.',
+					color: 0xe74c3c,
+				})],
+				ephemeral: true,
+			});
 			return;
 		}
 		try {
