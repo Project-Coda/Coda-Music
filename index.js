@@ -60,15 +60,15 @@ const rest = new REST({ version: '9' }).setToken(env.discord.token);
 
 global.client.on('interactionCreate', async interaction => {
 	if (!interaction.isChatInputCommand()) return;
-	if (roleCheckEmbed(interaction) === false) {
-		return console.log(interaction.user.name + ' does not have the required role.');
-	}
+	var allowed = await roleCheckEmbed(interaction);
+	if (allowed) {
 	// check if user has permission to use the command
-	console.log(interaction.commandName);
-	const commandFile = `./commands/${interaction.commandName}.js`;
-	if (!fs.existsSync(commandFile)) return;
-	const command = require(commandFile);
-	await command.execute(interaction);
+		console.log(interaction.commandName);
+		const commandFile = `./commands/${interaction.commandName}.js`;
+		if (!fs.existsSync(commandFile)) return;
+		const command = require(commandFile);
+		await command.execute(interaction);
+	}
 });
 global.client.on('messageCreate', async message => {
 	if (message.author.bot) return;
@@ -77,10 +77,13 @@ global.client.on('messageCreate', async message => {
 	const args = message.content.slice(env.discord.prefix.length).split(' ');
 	const commandName = args[1];
 	console.log(commandName);
-	const commandFile = `./message_commands/${commandName}.js`;
-	if (!fs.existsSync(commandFile)) return;
-	const command = require(commandFile);
-	await command.execute(message, args);
+	var allowed = await roleCheckEmbed(message);
+	if (allowed) {
+		const commandFile = `./message_commands/${commandName}.js`;
+		if (!fs.existsSync(commandFile)) return;
+		const command = require(commandFile);
+		await command.execute(message, args);
+	}
 },
 );
 // handle audio resource error events

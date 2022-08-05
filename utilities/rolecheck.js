@@ -36,16 +36,17 @@ async function roleCheckEmbed(interaction) {
 			),
 			],
 		});
-		global.client.channels.cache.get(env.discord.logs_channel).send({
-			embeds: [ embedcreator.setembed(
-				{
-					title: 'Incident Detected',
-					description: `${interaction.member.user} tried to use the music bot but did not have the correct role.`,
-				},
-			)],
-		},
-		);
-		return false;
 	}
+	global.client.channels.cache.get(env.discord.logs_channel).send({
+		embeds: [ embedcreator.setembed(
+			{
+				title: 'Incident Detected',
+				description: `${interaction.member.user} tried to use the music bot but did not have the correct role.`,
+				color: 0xe74c3c,
+			},
+		)],
+	},
+	);
+	return false;
 }
 module.exports = { roleCheck, roleCheckEmbed };
