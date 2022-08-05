@@ -1,6 +1,8 @@
-# Coda-Music
+# Coda Music
 
-![Embed Preview](.github/assets/demo.png)
+<img src=".github/assets/demo.png"
+     alt="Coda Music embed preview"
+     width="500" />
 
 This is the Coda Music Discord bot.
 
