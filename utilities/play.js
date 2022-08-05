@@ -1,18 +1,10 @@
-const { createAudioPlayer, NoSubscriberBehavior, createAudioResource, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
+const { createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
 const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+const { soundcloudInfo, youtubeInfo, SoundCloudResource, YouTubeResource } = require('./playremote.js');
 const embedcreator = require('../embed.js');
-const env = require('../env.js');
 connection = null;
 // Create Track Class
-class Track {
-	constructor(name, url, artist, artistImage, image) {
-		this.name = name;
-		this.url = url;
-		this.artist = artist;
-		this.artistImage = artistImage;
-		this.image = image;
-	}
-}
+
 async function createEmbed(track, playerstatus, volume) {
 	readablevolume = volume * 100;
 	embed = embedcreator.setembed ({
@@ -115,14 +107,113 @@ async function joinVC(channel) {
 async function leaveVC() {
 	connection.destroy();
 }
+async function addTrack(url, volume, channel, interaction) {
+	try {
+		trackinteraction = interaction;
+		await interaction.reply({
+			embeds: [embedcreator.setembed({
+				title: 'Loading...',
+				description: '',
+				color: 0x19ebfe,
+			})], ephemeral: true });
+		if (url.includes('youtube')) {
+			track = await youtubeInfo(url);
+		}
+		else if (url.includes('soundcloud')) {
+			track = await soundcloudInfo(url);
+		}
+		else {
+			track = await localInfo(url);
+		}
+		if (track) {
+			queue.push(track);
+			await joinVC(channel);
+			await createPlayer(channel);
+			console.log(queue);
+			console.log(player._state.status);
+		}
+		if (player._state.status === 'idle') {
+			playTrack(track, volume);
+			playerstatus = 'Now Playing';
+			embed = await createEmbed(track, playerstatus, volume);
+			row = await createButtons();
+			await interaction.editReply({
+				embeds: [embed],
+				components: [row],
+				ephemeral: true,
+			});
+			buttonCollector(interaction);
+		}
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
+}
+async function createPlayer() {
+	player = createAudioPlayer(
+		{
+			noSubscriberBehavior: NoSubscriberBehavior.Stop,
+			noSubscriberBehaviorTimeout: 10000,
+		},
+	);
+	player.on('error', error => {
+		console.log(error);
+		return embedcreator.sendError(error);
+	},
+	);
+	return player;
+}
+async function NowPlaying(track) {
+	// set now playing status
+	await global.client.user.setActivity(`${track.name} by ${track.artist}`, {
+		type: ActivityType.Playing,
+	});
+	console.log(`Now Playing: ${track.name} by ${track.artist}`);
+	// log now playing
+	embedcreator.log(`Now Playing: ${track.name} by ${track.artist}`);
+	player.on(AudioPlayerStatus.Idle, async () => {
+		console.log('Finished playing ' + track.name);
+		playerstatus = 'Finished playing';
+		embed = await createEmbed(track, playerstatus, volume);
+		await trackinteraction.editReply({
+			embeds: [embed],
+			ephemeral: true,
+		});
+		global.client.user.setActivity('your music', { type: ActivityType.Playing });
+		return embedcreator.log('Finished playing ' + track.name);
+	},
+	);
+}
+async function 	playTrack(track, volume) {
+	try {
+		if (track.url.includes('youtube') || track.url.includes('instagram')) {
+			resource = await YouTubeResource(track.url, volume);
+		}
+		else if (track.url.includes('soundcloud')) {
+			resource = await SoundCloudResource(track.url, volume);
+		}
+		else {
+			return embedcreator.sendError('Invalid URL');
+		}
+		connection.subscribe(player);
+		player.play(resource);
+		await NowPlaying(track);
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
+
+}
 module.exports = {
 	joinVC,
 	leaveVC,
 	buttonCollector,
 	createButtons,
 	createEmbed,
-	Track,
 	stop,
 	pause,
 	unpause,
+	addTrack,
 };

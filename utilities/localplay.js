@@ -1,8 +1,9 @@
-const
-async function localInfo(url) {
+const embedcreator = require('../embed.js');
+const { Track } = require('./track.js');
+async function localInfo(url, message) {
 	try {
-		source_messageid = trackinteraction.reference.messageId;
-		source_message = await trackinteraction.channel.messages.fetch(source_messageid);
+		source_messageid = message.reference.messageId;
+		source_message = await message.channel.messages.fetch(source_messageid);
 		user = await source_message.member;
 
 		avatar = await user.displayAvatarURL();
@@ -18,5 +19,15 @@ async function localInfo(url) {
 		return embedcreator.sendError(error);
 	}
 }
+async function localResource(track) {
+	try {
+		const resource = await createAudioResource(track.url);
+		return resource;
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
+}
 
-module.exports = { localInfo };
+module.exports = { localInfo, localResource };
