@@ -22,6 +22,7 @@ async function youtubeInfo(url) {
 	try {
 		info = await ytdl.getBasicInfo(url);
 		array = info.videoDetails.thumbnails;
+		url = info.videoDetails.video_url;
 		image = array[array.length - 1].url;
 		authorimage = info.videoDetails.author.thumbnails;
 		authorimage = authorimage[authorimage.length - 1].url;
