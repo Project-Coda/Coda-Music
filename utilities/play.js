@@ -160,7 +160,7 @@ async function addTrack(url, volume, channel, interaction) {
 		}
 		else if (interaction.type === 2) {
 			trackinteraction = interaction;
-			interaction.reply({
+			await interaction.reply({
 				embeds: [embedcreator.setembed({
 					title: 'Loading...',
 					description: '',
