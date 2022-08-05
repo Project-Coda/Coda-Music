@@ -4,7 +4,7 @@
      alt="Coda Music embed preview"
      width="500" />
 
-This is the Coda Music Discord bot.
+This is the new Coda Music Discord bot.
 
 It is the bot that is used to play music in the [Coda Discord server](https://projectcoda.studio/discord).
 
