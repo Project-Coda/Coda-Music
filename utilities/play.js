@@ -167,7 +167,6 @@ async function addTrack(url, volume, channel, interaction) {
 					color: 0x19ebfe,
 				})], ephemeral: true });
 		}
-		console.log(trackinteraction.type);
 		if (url.includes('youtube') || url.includes('youtu.be')) {
 			track = await youtubeInfo(url);
 		}
@@ -180,7 +179,6 @@ async function addTrack(url, volume, channel, interaction) {
 		if (track) {
 			await joinVC(channel);
 			await createPlayer(channel);
-			console.log(player._state.status);
 		}
 		if (player._state.status === 'idle') {
 			playTrack(track, volume);

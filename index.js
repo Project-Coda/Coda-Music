@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const embedcreator = require('./embed.js');
 const figlet = require('figlet');
 const pkg = require('./package.json');
+const { roleCheckEmbed } = require('./utilities/rolecheck.js');
 global.client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent],
 	partials: [Partials.Message, Partials.Channel],
@@ -59,6 +60,10 @@ const rest = new REST({ version: '9' }).setToken(env.discord.token);
 
 global.client.on('interactionCreate', async interaction => {
 	if (!interaction.isChatInputCommand()) return;
+	if (roleCheckEmbed(interaction) === false) {
+		return console.log(interaction.user.name + ' does not have the required role.');
+	}
+	// check if user has permission to use the command
 	console.log(interaction.commandName);
 	const commandFile = `./commands/${interaction.commandName}.js`;
 	if (!fs.existsSync(commandFile)) return;

@@ -9,7 +9,6 @@ track = null;
 async function soundcloudInfo(url) {
 	try {
 		const info = await scdl.getInfo(url, env.soundcloud.client_id);
-		console.log(info);
 		const track = new Track(info.title, info.permalink_url, info.user.username, info.user.avatar_url, info.artwork_url);
 		return track;
 	}
@@ -27,7 +26,6 @@ async function youtubeInfo(url) {
 		authorimage = info.videoDetails.author.thumbnails;
 		authorimage = authorimage[authorimage.length - 1].url;
 		track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, authorimage, image);
-		console.log(track);
 		return track;
 	}
 	catch (error) {
