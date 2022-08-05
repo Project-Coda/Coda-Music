@@ -5,6 +5,7 @@ const { localInfo, localResource } = require('./localplay.js');
 const embedcreator = require('../embed.js');
 connection = null;
 collector = null;
+paused = null;
 // Create Track Class
 
 async function createEmbed(track, playerstatus, volume) {
@@ -15,8 +16,14 @@ async function createEmbed(track, playerstatus, volume) {
 		url = track.url;
 	}
 	readablevolume = volume * 100;
+	if (readablevolume > 100) {
+		readablevolume = 100;
+	}
 	embed = embedcreator.setembed ({
 		title: `${playerstatus}: ${track.name}`,
+		thumbnail: {
+			url: track.artistImage,
+		},
 		url: url,
 		author: {
 			name: track.artist,
@@ -46,7 +53,12 @@ async function createButtons() {
 }
 // Create Button Collector
 async function buttonCollector(interaction, player) {
-	const filter = i => (i.customId === 'pause' || i.customId === 'stop') && i.user.id === interaction.author.id;
+	if (interaction.type === 2) {
+		filter = i => (i.customId === 'pause' || i.customId === 'stop') && i.user.id === interaction.user.id && i.message.interaction.id === interaction.id;
+	}
+	else {
+		filter = i => (i.customId === 'pause' || i.customId === 'stop') && i.user.id === interaction.author.id;
+	}
 	collector = interaction.channel.createMessageComponentCollector({ filter, componentType: ComponentType.Button });
 	collector.on('collect', async i => {
 		if (i.customId === 'pause') {
@@ -156,7 +168,7 @@ async function addTrack(url, volume, channel, interaction) {
 				})], ephemeral: true });
 		}
 		console.log(trackinteraction.type);
-		if (url.includes('youtube')) {
+		if (url.includes('youtube') || url.includes('youtu.be')) {
 			track = await youtubeInfo(url);
 		}
 		else if (url.includes('soundcloud')) {

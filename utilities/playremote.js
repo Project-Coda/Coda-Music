@@ -5,10 +5,6 @@ const embedcreator = require('../embed.js');
 const env = require('../env.js');
 const { Track } = require('./track.js');
 track = null;
-player = null;
-paused = false;
-trackinteraction = null;
-queue = [];
 
 async function soundcloudInfo(url) {
 	try {
@@ -27,10 +23,10 @@ async function youtubeInfo(url) {
 		info = await ytdl.getBasicInfo(url);
 		array = info.videoDetails.thumbnails;
 		image = array[array.length - 1].url;
-		console.log(info);
 		authorimage = info.videoDetails.author.thumbnails;
 		authorimage = authorimage[authorimage.length - 1].url;
 		track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, authorimage, image);
+		console.log(track);
 		return track;
 	}
 	catch (error) {
