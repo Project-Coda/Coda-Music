@@ -4,13 +4,20 @@ const { soundcloudInfo, youtubeInfo, SoundCloudResource, YouTubeResource } = req
 const { localInfo, localResource } = require('./localplay.js');
 const embedcreator = require('../embed.js');
 connection = null;
+collector = null;
 // Create Track Class
 
 async function createEmbed(track, playerstatus, volume) {
+	if (track.original_messageurl) {
+		url = track.original_messageurl;
+	}
+	else {
+		url = track.url;
+	}
 	readablevolume = volume * 100;
 	embed = embedcreator.setembed ({
 		title: `${playerstatus}: ${track.name}`,
-		url: track.url,
+		url: url,
 		author: {
 			name: track.artist,
 			icon_url: track.artistImage,
@@ -40,7 +47,7 @@ async function createButtons() {
 // Create Button Collector
 async function buttonCollector(interaction, player) {
 	const filter = i => (i.customId === 'pause' || i.customId === 'stop') && i.user.id === interaction.author.id;
-	const collector = interaction.channel.createMessageComponentCollector({ filter, componentType: ComponentType.Button });
+	collector = interaction.channel.createMessageComponentCollector({ filter, componentType: ComponentType.Button });
 	collector.on('collect', async i => {
 		if (i.customId === 'pause') {
 			if (paused) {
@@ -60,7 +67,7 @@ async function buttonCollector(interaction, player) {
 	},
 	);
 	collector.on('end', collected => {
-		console.log(`Collected ${collected} items`);
+		console.log(`Collected ${collected.size} items`);
 	},
 	);
 }
@@ -159,10 +166,8 @@ async function addTrack(url, volume, channel, interaction) {
 			track = await localInfo(url, interaction);
 		}
 		if (track) {
-			queue.push(track);
 			await joinVC(channel);
 			await createPlayer(channel);
-			console.log(queue);
 			console.log(player._state.status);
 		}
 		if (player._state.status === 'idle') {
@@ -206,32 +211,42 @@ async function createPlayer() {
 	return player;
 }
 async function NowPlaying(track) {
+	try {
 	// set now playing status
-	await global.client.user.setActivity(`${track.name} by ${track.artist}`, {
-		type: ActivityType.Playing,
-	});
-	console.log(`Now Playing: ${track.name} by ${track.artist}`);
-	// log now playing
-	embedcreator.log(`Now Playing: ${track.name} by ${track.artist}`);
-	player.on(AudioPlayerStatus.Idle, async () => {
-		console.log('Finished playing ' + track.name);
-		playerstatus = 'Finished playing';
-		embed = await createEmbed(track, playerstatus, volume);
-		if (trackinteraction.type === 2) {
-			await trackinteraction.editReply({
-				embeds: [embed],
-				ephemeral: true,
-			});
-		}
-		else {
-			await trackinteraction.edit({
-				embeds: [embed],
-			});
-		}
-		global.client.user.setActivity('your music', { type: ActivityType.Playing });
-		return embedcreator.log('Finished playing ' + track.name);
-	},
-	);
+		await global.client.user.setActivity(`${track.name} by ${track.artist}`, {
+			type: ActivityType.Playing,
+		});
+		console.log(`Now Playing: ${track.name} by ${track.artist}`);
+		// log now playing
+		embedcreator.log(`Now Playing: ${track.name} by ${track.artist}`);
+		player.on(AudioPlayerStatus.Idle, async () => {
+			console.log('Finished playing ' + track.name);
+			playerstatus = 'Finished playing';
+			collector.stop();
+			embed = await createEmbed(track, playerstatus, volume);
+			if (trackinteraction.type === 2) {
+				await trackinteraction.editReply({
+					embeds: [embed],
+					ephemeral: true,
+				});
+			}
+			else {
+				await trackinteraction.edit({
+					embeds: [embed],
+				}).then(async () => {
+					await trackinteraction.delete();
+				},
+				);
+			}
+			global.client.user.setActivity('your music', { type: ActivityType.Playing });
+			return embedcreator.log('Finished playing ' + track.name);
+		},
+		);
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
 }
 async function 	playTrack(track, volume) {
 	try {
