@@ -1,5 +1,7 @@
 # Coda-Music
 
+![Embed Preview](.github/assets/demo.png)
+
 This is the Coda Music Discord bot.
 
 It is the bot that is used to play music in the [Coda Discord server](https://projectcoda.studio/discord).
