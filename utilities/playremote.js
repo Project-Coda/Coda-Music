@@ -10,7 +10,7 @@ async function soundcloudInfo(url) {
 	try {
 		const info = await scdl.getInfo(url, env.soundcloud.client_id);
 		console.log(info);
-		const track = new Track(info.title, url, info.user.username, info.user.avatar_url, info.artwork_url);
+		const track = new Track(info.title, info.permalink_url, info.user.username, info.user.avatar_url, info.artwork_url);
 		return track;
 	}
 	catch (error) {
