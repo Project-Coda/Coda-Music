@@ -2,7 +2,7 @@
 
 <img src=".github/assets/demo.png"
      alt="Coda Music embed preview"
-     width="500" />
+     width="500"/>
 
 This is the new Coda Music Discord bot.
 
