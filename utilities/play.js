@@ -1,4 +1,4 @@
-const { createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
+const { createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, AudioPlayerStatus, VoiceConnectionStatus } = require('@discordjs/voice');
 const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 const { soundcloudInfo, youtubeInfo, SoundCloudResource, YouTubeResource } = require('./playremote.js');
 const { localInfo, localResource } = require('./localplay.js');
@@ -143,6 +143,12 @@ async function joinVC(channel) {
 		guildId: channel.guild.id,
 		adapterCreator: channel.guild.voiceAdapterCreator,
 	});
+	connection.on(VoiceConnectionStatus.Ready, async () => {
+		if (await channel.guild.members.me.voice.channel.type === 13) {
+			await channel.guild.members.me.voice.setSuppressed(false);
+		}
+	},
+	);
 	return connection;
 }
 async function leaveVC() {
@@ -232,7 +238,7 @@ async function NowPlaying(track) {
 		player.on(AudioPlayerStatus.Idle, async () => {
 			console.log('Finished playing ' + track.name);
 			playerstatus = 'Finished playing';
-			collector.stop();
+			await collector.stop();
 			embed = await createEmbed(track, playerstatus, volume);
 			if (trackinteraction.type === 2) {
 				await trackinteraction.editReply({
