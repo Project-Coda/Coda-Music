@@ -1,4 +1,4 @@
-const { createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, AudioPlayerStatus } = require('@discordjs/voice');
+const { createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, AudioPlayerStatus, VoiceConnectionStatus } = require('@discordjs/voice');
 const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 const { soundcloudInfo, youtubeInfo, SoundCloudResource, YouTubeResource } = require('./playremote.js');
 const { localInfo, localResource } = require('./localplay.js');
@@ -143,13 +143,12 @@ async function joinVC(channel) {
 		guildId: channel.guild.id,
 		adapterCreator: channel.guild.voiceAdapterCreator,
 	});
-	if (await connection) {
-		if (await channel.type === 13) {
-			await console.log(channel);
+	connection.on(VoiceConnectionStatus.Ready, async () => {
+		if (await channel.guild.members.me.voice.channel.type === 13) {
 			await channel.guild.members.me.voice.setSuppressed(false);
 		}
-	}
-
+	},
+	);
 	return connection;
 }
 async function leaveVC() {
