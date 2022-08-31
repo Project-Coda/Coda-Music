@@ -142,7 +142,12 @@ async function joinVC(channel) {
 		channelId: channel.id,
 		guildId: channel.guild.id,
 		adapterCreator: channel.guild.voiceAdapterCreator,
+		setSuppressed: false,
 	});
+	if (channel.type === 13) {
+		await channel.guild.members.me.voice.setSuppressed(false);
+	}
+
 	return connection;
 }
 async function leaveVC() {
