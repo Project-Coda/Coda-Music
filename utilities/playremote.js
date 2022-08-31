@@ -38,6 +38,7 @@ async function YouTubeResource(url, volume) {
 	try {
 		const yt = ytdl(url, {
 			filter: 'audioonly',
+			dlChunkSize: 0,
 		});
 		if (volume < 1) {
 			const resource = createAudioResource(yt, {
