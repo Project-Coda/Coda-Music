@@ -142,10 +142,12 @@ async function joinVC(channel) {
 		channelId: channel.id,
 		guildId: channel.guild.id,
 		adapterCreator: channel.guild.voiceAdapterCreator,
-		setSuppressed: false,
 	});
-	if (channel.type === 13) {
-		await channel.guild.members.me.voice.setSuppressed(false);
+	if (await connection) {
+		if (await channel.type === 13) {
+			await console.log(channel);
+			await channel.guild.members.me.voice.setSuppressed(false);
+		}
 	}
 
 	return connection;
@@ -237,7 +239,7 @@ async function NowPlaying(track) {
 		player.on(AudioPlayerStatus.Idle, async () => {
 			console.log('Finished playing ' + track.name);
 			playerstatus = 'Finished playing';
-			collector.stop();
+			await collector.stop();
 			embed = await createEmbed(track, playerstatus, volume);
 			if (trackinteraction.type === 2) {
 				await trackinteraction.editReply({
