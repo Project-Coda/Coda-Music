@@ -1,6 +1,6 @@
 {
   "name": "coda-music",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A music bot for Coda",
   "main": "index.js",
   "scripts": {
