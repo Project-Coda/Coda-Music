@@ -27,6 +27,6 @@
     "lodash": "^4.17.21",
     "sodium": "^3.0.2",
     "soundcloud-downloader": "^1.0.0",
-    "ytdl-core": "^4.11.4"
+    "ytdl-core": "^4.11.5"
   }
 }
