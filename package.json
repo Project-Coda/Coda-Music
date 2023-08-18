@@ -22,7 +22,7 @@
     "@discordjs/voice": "^0.16.0",
     "discord-api-types": "^0.37.54",
     "discord.js": "^14.13.0",
-    "ffmpeg-static": "^5.1.0",
+    "ffmpeg-static": "^5.2.0",
     "figlet": "^1.6.0",
     "lodash": "^4.17.21",
     "sodium": "^3.0.2",
