@@ -1,5 +1,4 @@
 const { createAudioResource } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
 const scdl = require('soundcloud-downloader').default;
 const embedcreator = require('../embed.js');
 const env = require('../env.js');
