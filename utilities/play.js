@@ -3,6 +3,7 @@ const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentTyp
 const { soundcloudInfo, youtubeInfo, SoundCloudResource, YouTubeResource } = require('./playremote.js');
 const { localInfo, localResource } = require('./localplay.js');
 const embedcreator = require('../embed.js');
+const { cleanupTempFiles, cleanupTrackFile } = require('./downloadfile.js');
 connection = null;
 collector = null;
 paused = null;
@@ -19,7 +20,7 @@ async function createEmbed(track, playerstatus, volume) {
 	if (readablevolume > 100) {
 		readablevolume = 100;
 	}
-	embed = embedcreator.setembed ({
+	embed = embedcreator.setembed({
 		title: `${playerstatus}: ${track.name}`,
 		thumbnail: {
 			url: track.artistImage,
@@ -152,7 +153,14 @@ async function joinVC(channel) {
 	return connection;
 }
 async function leaveVC() {
-	connection.destroy();
+	try {
+		connection.destroy();
+		await cleanupTempFiles();
+	}
+	catch (error) {
+		console.log(error);
+		return embedcreator.sendError(error);
+	}
 }
 async function addTrack(url, volume, channel, interaction) {
 	try {
@@ -162,7 +170,8 @@ async function addTrack(url, volume, channel, interaction) {
 					title: 'Loading...',
 					description: '',
 					color: 0x19ebfe,
-				})], ephemeral: true });
+				})], ephemeral: true,
+			});
 		}
 		else if (interaction.type === 2) {
 			trackinteraction = interaction;
@@ -171,7 +180,8 @@ async function addTrack(url, volume, channel, interaction) {
 					title: 'Loading...',
 					description: '',
 					color: 0x19ebfe,
-				})], ephemeral: true });
+				})], ephemeral: true,
+			});
 		}
 		if (url.includes('youtube') || url.includes('youtu.be')) {
 			track = await youtubeInfo(url);
@@ -228,7 +238,7 @@ async function createPlayer() {
 }
 async function NowPlaying(track) {
 	try {
-	// set now playing status
+		// set now playing status
 		await global.client.user.setActivity(`${track.name} by ${track.artist}`, {
 			type: ActivityType.Playing,
 		});
@@ -255,6 +265,7 @@ async function NowPlaying(track) {
 				);
 			}
 			global.client.user.setActivity('your music', { type: ActivityType.Playing });
+			cleanupTrackFile(track.name);
 			return embedcreator.log('Finished playing ' + track.name);
 		},
 		);
@@ -264,7 +275,7 @@ async function NowPlaying(track) {
 		return embedcreator.sendError(error);
 	}
 }
-async function 	playTrack(track, volume) {
+async function playTrack(track, volume) {
 	try {
 		if (track.url.includes('youtube') || track.url.includes('instagram')) {
 			resource = await YouTubeResource(track.url, volume);
@@ -273,7 +284,7 @@ async function 	playTrack(track, volume) {
 			resource = await SoundCloudResource(track.url, volume);
 		}
 		else {
-			resource = await localResource(track.url, volume);
+			resource = await localResource(track.url, track.name, volume);
 		}
 		connection.subscribe(player);
 		player.play(resource);
