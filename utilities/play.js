@@ -1,6 +1,6 @@
 const { createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, AudioPlayerStatus, VoiceConnectionStatus } = require('@discordjs/voice');
 const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
-const { soundcloudInfo, youtubeInfo, SoundCloudResource, YouTubeResource } = require('./playremote.js');
+const { soundcloudInfo, SoundCloudResource } = require('./playremote.js');
 const { localInfo, localResource } = require('./localplay.js');
 const embedcreator = require('../embed.js');
 const { cleanupTempFiles, cleanupTrackFile } = require('./downloadfile.js');
@@ -183,9 +183,6 @@ async function addTrack(url, volume, channel, interaction) {
 				})], ephemeral: true,
 			});
 		}
-		if (url.includes('youtube') || url.includes('youtu.be')) {
-			track = await youtubeInfo(url);
-		}
 		else if (url.includes('soundcloud')) {
 			track = await soundcloudInfo(url);
 		}
@@ -277,10 +274,7 @@ async function NowPlaying(track) {
 }
 async function playTrack(track, volume) {
 	try {
-		if (track.url.includes('youtube') || track.url.includes('instagram')) {
-			resource = await YouTubeResource(track.url, volume);
-		}
-		else if (track.url.includes('soundcloud')) {
+		if (track.url.includes('soundcloud')) {
 			resource = await SoundCloudResource(track.url, volume);
 		}
 		else {
