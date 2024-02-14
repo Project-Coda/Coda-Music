@@ -1,4 +1,5 @@
 const embedcreator = require('../embed.js');
+const { downloadFile } = require('./downloadfile.js');
 const { Track } = require('./track.js');
 const { createAudioResource } = require('@discordjs/voice');
 async function localInfo(url, message) {
@@ -24,17 +25,18 @@ async function localInfo(url, message) {
 		return embedcreator.sendError(error);
 	}
 }
-async function localResource(url, volume) {
+async function localResource(url, name, volume) {
 	try {
+		const file = await downloadFile(url, name);
 		if (volume < 1) {
-			const resource = createAudioResource(url, {
+			const resource = createAudioResource(file, {
 				inlineVolume: true,
 			});
 			resource.volume.setVolume(volume);
 			return resource;
 		}
 		else {
-			const resource = createAudioResource(url);
+			const resource = createAudioResource(file);
 			return resource;
 		}
 	}

@@ -1,5 +1,4 @@
 const { createAudioResource } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
 const scdl = require('soundcloud-downloader').default;
 const embedcreator = require('../embed.js');
 const env = require('../env.js');
@@ -17,46 +16,7 @@ async function soundcloudInfo(url) {
 		return embedcreator.sendError(error);
 	}
 }
-async function youtubeInfo(url) {
-	try {
-		info = await ytdl.getBasicInfo(url);
-		array = info.videoDetails.thumbnails;
-		url = info.videoDetails.video_url;
-		image = array[array.length - 1].url;
-		authorimage = info.videoDetails.author.thumbnails;
-		authorimage = authorimage[authorimage.length - 1].url;
-		track = new Track(info.videoDetails.title, url, info.videoDetails.author.name, authorimage, image);
-		return track;
-	}
-	catch (error) {
-		console.log(error);
-		return embedcreator.sendError(error);
-	}
-}
 
-async function YouTubeResource(url, volume) {
-	try {
-		const yt = ytdl(url, {
-			filter: 'audioonly',
-			dlChunkSize: 0,
-		});
-		if (volume < 1) {
-			const resource = createAudioResource(yt, {
-				inlineVolume: true,
-			});
-			resource.volume.setVolume(volume);
-			return resource;
-		}
-		else {
-			const resource = createAudioResource(yt);
-			return resource;
-		}
-	}
-	catch (error) {
-		console.log(error);
-		return embedcreator.sendError(error);
-	}
-}
 async function SoundCloudResource(url, volume) {
 	try {
 		const sc = await scdl.download(url, env.soundcloud.client_id);
@@ -80,8 +40,6 @@ async function SoundCloudResource(url, volume) {
 }
 
 module.exports = {
-	YouTubeResource,
 	SoundCloudResource,
-	youtubeInfo,
 	soundcloudInfo,
 };

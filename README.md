@@ -10,7 +10,6 @@ It is the bot that is used to play music in the [Coda Discord server](https://pr
 
 It currently supports the following music services:
 
-- YouTube
 - SoundCloud
 - Direct Link
 

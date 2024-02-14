@@ -8,8 +8,18 @@ const figlet = require('figlet');
 const pkg = require('./package.json');
 const { roleCheckEmbed } = require('./utilities/rolecheck.js');
 global.client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.MessageContent],
-	partials: [Partials.Message, Partials.Channel],
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.MessageContent,
+	],
+	partials: [
+		Partials.Message,
+		Partials.Channel,
+	],
 });
 global.client.login(env.discord.token);
 console.log(figlet.textSync('CODA MUSIC', {
