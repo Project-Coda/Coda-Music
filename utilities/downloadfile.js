@@ -4,6 +4,12 @@ const embedcreator = require('../embed.js');
 
 async function downloadFile(url, name) {
 	try {
+		// if the file is already in the temp directory, delete it
+		if (fs.existsSync(`./temp/${name}`)) {
+			embedcreator.log(`Removing ${name}`);
+			fs.unlinkSync(`./temp/${name}`);
+			embedcreator.log(`${name} removed`);
+		}
 		// ensure file is audio by checking mime type
 		const typeresponse = await axios.head(url);
 		const contentType = typeresponse.headers['content-type'];
