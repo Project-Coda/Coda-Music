@@ -183,15 +183,17 @@ async function addTrack(url, volume, channel, interaction) {
 				})], ephemeral: true,
 			});
 		}
-		else if (url.includes('soundcloud')) {
+		if (url.includes('soundcloud')) {
+			console.log('soundcloud');
 			track = await soundcloudInfo(url);
 		}
 		else {
+			console.log('local');
 			track = await localInfo(url, interaction);
 		}
 		if (track) {
 			await joinVC(channel);
-			await createPlayer(channel);
+			player = await createPlayer(channel);
 		}
 		if (player._state.status === 'idle') {
 			playTrack(track, volume);
